@@ -67,6 +67,7 @@ def npmi_wpair(word1, word2, word_in_file):
 
     return result
 
+
 def calc_topic_coherence(topic_words):
     topic_assoc = []
     for i in range(0, len(topic_words)-1):
@@ -77,7 +78,6 @@ def calc_topic_coherence(topic_words):
                 topic_assoc.append(npmi_wpair(w1, w2))
 
     return float(sum(topic_assoc))/len(topic_assoc)
-
 
 
 #compute the association between two words

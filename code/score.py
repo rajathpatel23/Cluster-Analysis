@@ -141,14 +141,14 @@ def main():
 def cluster(clustering_algo, intersection, words_index_intersect, num_topics, rerank, weights, topics_file, rand):
     if clustering_algo == "KMeans":
         labels, top_k  = KMeans_model(intersection, words_index_intersect, num_topics, rerank, rand, weights)
-    elif clustering_algo == "SPKMeans":
-        labels, top_k  = SphericalKMeans_model(intersection, words_index_intersect, num_topics, rerank, rand, weights)
+    # elif clustering_algo == "SPKMeans":
+    #     labels, top_k  = SphericalKMeans_model(intersection, words_index_intersect, num_topics, rerank, rand, weights)
     elif clustering_algo == "GMM":
         labels, top_k = GMM_model(intersection, words_index_intersect, num_topics, rerank, rand)
     elif clustering_algo == "KMedoids":
         labels, top_k  = KMedoids_model(intersection,  words_index_intersect,  num_topics, rand)
-    elif clustering_algo == "VMFM":
-        labels, top_k = VonMisesFisherMixture_Model(intersection, words_index_intersect, num_topics, rerank, rand)
+    # elif clustering_algo == "VMFM":
+    #     labels, top_k = VonMisesFisherMixture_Model(intersection, words_index_intersect, num_topics, rerank, rand)
 
     #Affinity matrix based
     elif clustering_algo == "DBSCAN":
