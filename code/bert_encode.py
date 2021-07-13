@@ -139,10 +139,8 @@ class BertWordFromTextEncoder:
         np.savetxt(save_fn, np.vstack(all_vecs), fmt = '%s', delimiter=" ", encoding='utf-8')
         print(f"{len(all_vecs)} vectors saved to {save_fn}")
         print(f"{len(self.compounds)} compound words saved to: compound_words.txt")
-        
         with open('compound_words.txt', 'w') as f:
             f.write("\n".join(list(self.compounds)))
-
         sys.stdout.flush()
 
     def encode_docs(self, docs=[], agg_by="firstword", save_fn="", layer=12):
@@ -241,7 +239,6 @@ class BertWordFromTextEncoder:
 
 def init():
     """ Sample script """
-
     import preprocess
     if args.use_stopwords==1:
         stopwords = set(line.strip() for line in open("stopwords_en.txt", encoding='utf-8'))
@@ -249,7 +246,10 @@ def init():
         stopwords = set()
 
     word_to_file = {}
-    word_to_file, _, files = preprocess.get_dataset(dataset=args.data, type="train")
+    word_to_file, _, files = preprocess.create_vocab_and_files(stopwords=stopwords,
+                                                            dataset=args.data,
+                                                            type="train",
+                                                            preprocess=float('inf'))
     
     if args.use_full_vocab == 1:
         valid_vocab = -1

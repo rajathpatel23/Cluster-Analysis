@@ -11,49 +11,49 @@ import codecs
 import numpy as np
 from collections import defaultdict
 
-
-#parser arguments
+# parser arguments
 desc = "Computes the observed coherence for a given topic and word-count file."
 parser = argparse.ArgumentParser(description=desc)
 #####################
-#positional argument#
+# positional argument#
 #####################
 parser.add_argument("topic_file", help="file that contains the topics")
-parser.add_argument("metric", help="type of evaluation metric", choices=["pmi","npmi","lcp"])
+parser.add_argument("metric", help="type of evaluation metric", choices=["pmi", "npmi", "lcp"])
 parser.add_argument("wordcount_file", help="file that contains the word counts")
 
 ###################
-#optional argument#
+# optional argument#
 ###################
 parser.add_argument("-t", "--topns", nargs="+", type=int, default=[10], \
-    help="list of top-N topic words to consider for computing coherence; e.g. '-t 5 10' means it " + \
-    " will compute coherence over top-5 words and top-10 words and then take the mean of both values." + \
-    " Default = [10]")
+                    help="list of top-N topic words to consider for computing coherence; e.g. '-t 5 10' means it " + \
+                         " will compute coherence over top-5 words and top-10 words and then take the mean of both values." + \
+                         " Default = [10]")
 
 args = parser.parse_args()
 
-#parameters
-colloc_sep = "_" #symbol for concatenating collocations
+# parameters
+colloc_sep = "_"  # symbol for concatenating collocations
 
-#input
+# input
 topic_file = codecs.open(args.topic_file, "r", "utf-8")
 wc_file = codecs.open(args.wordcount_file, "r", "utf-8")
 
-#constants
-WTOTALKEY = "!!<TOTAL_WINDOWS>!!" #key name for total number of windows (in word count file)
+# constants
+WTOTALKEY = "!!<TOTAL_WINDOWS>!!"  # key name for total number of windows (in word count file)
 
-#global variables
-window_total = 0 #total number of windows
-wordcount = {} #a dictionary of word counts, for single and pair words
-wordpos = {} #a dictionary of pos distribution
+# global variables
+window_total = 0  # total number of windows
+wordcount = {}  # a dictionary of word counts, for single and pair words
+wordpos = {}  # a dictionary of pos distribution
 
 ###########
-#functions#
+# functions#
 ###########
-#use utf-8 for stdout
+# use utf-8 for stdout
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
-def npmi_wpair(word1, word2, word_in_file):
 
+
+def npmi_wpair(word1, word2, word_in_file):
     combined_count = len(set(word_in_file.get(word1)) & set(word_in_file).get(word2))
     w1_count = word_in_file.get(w1_count, 0)
     w2_count = word_in_file.get(w2_count, 0)
@@ -61,26 +61,26 @@ def npmi_wpair(word1, word2, word_in_file):
     if w1_count == 0 or w2_count == 0 or combined_count == 0:
         result = 0.0
     else:
-        result = math.log((float(combined_count)*float(window_total))/ \
-                float(w1_count*w2_count), 10)
-        result = result / (-1.0*math.log(float(combined_count)/(window_total),10))
+        result = math.log((float(combined_count) * float(window_total)) / \
+                          float(w1_count * w2_count), 10)
+        result = result / (-1.0 * math.log(float(combined_count) / (window_total), 10))
 
     return result
 
 
 def calc_topic_coherence(topic_words):
     topic_assoc = []
-    for i in range(0, len(topic_words)-1):
+    for i in range(0, len(topic_words) - 1):
         w1 = topic_words[i]
-        for j in range(i+1, len(topic_words)):
+        for j in range(i + 1, len(topic_words)):
             w2 = topic_words[j]
             if target_word != topic_word:
                 topic_assoc.append(npmi_wpair(w1, w2))
 
-    return float(sum(topic_assoc))/len(topic_assoc)
+    return float(sum(topic_assoc)) / len(topic_assoc)
 
 
-#compute the association between two words
+# compute the association between two words
 def calc_assoc(word1, word2):
     combined1 = word1 + "|" + word2
     combined2 = word2 + "|" + word1
@@ -101,43 +101,45 @@ def calc_assoc(word1, word2):
         if w1_count == 0 or w2_count == 0 or combined_count == 0:
             result = 0.0
         else:
-            result = math.log((float(combined_count)*float(window_total))/ \
-                float(w1_count*w2_count), 10)
+            result = math.log((float(combined_count) * float(window_total)) / \
+                              float(w1_count * w2_count), 10)
             if args.metric == "npmi":
-                result = result / (-1.0*math.log(float(combined_count)/(window_total),10))
+                result = result / (-1.0 * math.log(float(combined_count) / (window_total), 10))
 
     elif args.metric == "lcp":
         if combined_count == 0:
             if w2_count != 0:
-                result = math.log(float(w2_count)/window_total, 10)
+                result = math.log(float(w2_count) / window_total, 10)
             else:
-                result = math.log(float(1.0)/window_total, 10)
+                result = math.log(float(1.0) / window_total, 10)
         else:
-            result = math.log((float(combined_count))/(float(w1_count)), 10)
+            result = math.log((float(combined_count)) / (float(w1_count)), 10)
 
     return result
 
-#compute topic coherence given a list of topic words
+
+# compute topic coherence given a list of topic words
 def calc_topic_coherence(topic_words):
     topic_assoc = []
-    for w1_id in range(0, len(topic_words)-1):
+    for w1_id in range(0, len(topic_words) - 1):
         target_word = topic_words[w1_id]
-        #remove the underscore and sub it with space if it's a collocation/bigram
+        # remove the underscore and sub it with space if it's a collocation/bigram
         w1 = " ".join(target_word.split(colloc_sep))
-        for w2_id in range(w1_id+1, len(topic_words)):
+        for w2_id in range(w1_id + 1, len(topic_words)):
             topic_word = topic_words[w2_id]
-            #remove the underscore and sub it with space if it's a collocation/bigram
+            # remove the underscore and sub it with space if it's a collocation/bigram
             w2 = " ".join(topic_word.split(colloc_sep))
             if target_word != topic_word:
                 topic_assoc.append(calc_assoc(w1, w2))
 
-    return float(sum(topic_assoc))/len(topic_assoc)
+    return float(sum(topic_assoc)) / len(topic_assoc)
+
 
 ######
-#main#
+# main#
 ######
 
-#process the word count file(s)
+# process the word count file(s)
 for line in wc_file:
     line = line.strip()
     data = line.split("|")
@@ -153,20 +155,20 @@ for line in wc_file:
         print "ERROR: wordcount format incorrect. Line =", line
         raise SystemExit
 
-#get the total number of windows
+# get the total number of windows
 if WTOTALKEY in wordcount:
     window_total = wordcount[WTOTALKEY]
 
-#read the topic file and compute the observed coherence
-topic_coherence = defaultdict(list) # {topicid: [tc]}
-topic_tw = {} #{topicid: topN_topicwords}
+# read the topic file and compute the observed coherence
+topic_coherence = defaultdict(list)  # {topicid: [tc]}
+topic_tw = {}  # {topicid: topN_topicwords}
 for topic_id, line in enumerate(topic_file):
     topic_list = line.split()[:max(args.topns)]
     topic_tw[topic_id] = " ".join(topic_list)
     for n in args.topns:
         topic_coherence[topic_id].append(calc_topic_coherence(topic_list[:n]))
 
-#sort the topic coherence scores in terms of topic id
+# sort the topic coherence scores in terms of topic id
 tc_items = sorted(topic_coherence.items())
 mean_coherence_list = []
 for item in tc_items:
@@ -178,7 +180,7 @@ for item in tc_items:
         print ("%.2f;" % i),
     print ")", topic_tw[item[0]]
 
-#print the overall topic coherence for all topics
+# print the overall topic coherence for all topics
 print "=========================================================================="
 print "Average Topic Coherence = %.3f" % np.mean(mean_coherence_list)
 print "Median Topic Coherence = %.3f" % np.median(mean_coherence_list)
